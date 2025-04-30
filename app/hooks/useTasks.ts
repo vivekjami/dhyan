@@ -6,11 +6,20 @@ import { Task } from '../types/task';
 import { loadTasks, saveTasks } from '../utils/localStorageHelpers';
 
 export const useTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>(loadTasks());
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  // Load tasks from localStorage only on the client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setTasks(loadTasks());
+    }
+  }, []);
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {
-    saveTasks(tasks);
+    if (typeof window !== 'undefined') {
+      saveTasks(tasks);
+    }
   }, [tasks]);
 
   // Timer for progress bar
@@ -36,8 +45,8 @@ export const useTasks = () => {
   }, [tasks]);
 
   const addTask = (title: string, description: string, estimatedTime: number) => {
-    if (tasks.length >= 10) {
-      alert('Maximum 10 tasks per day!');
+    if (tasks.length >= 5) {
+      alert('Maximum 5 tasks per day!');
       return;
     }
     const newTask: Task = {
