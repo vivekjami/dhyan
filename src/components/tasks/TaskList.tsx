@@ -47,9 +47,9 @@ export default function TaskList() {
 
   return (
     <div className="retro-card mb-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 opacity-100">
         <h3 className="text-xl">Task List</h3>
-        <div className="flex space-x-2 text-xs">
+        <div className="flex space-x-2 text-xs opacity-100 ">
           <button
             className={`px-3 py-1 rounded ${filter === 'all' ? 'bg-orange-500' : 'bg-slate-700'}`}
             onClick={() => setFilter('all')}
