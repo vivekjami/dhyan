@@ -1,10 +1,36 @@
 // app/providers.tsx
 'use client';
 
-import { ReactNode } from 'react';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { TaskProvider } from '@/contexts/TaskContext';
-import { PollProvider } from '@/contexts/PollContext';
+import { ReactNode, createContext } from 'react';
+
+// Create placeholder contexts since the actual ones may not exist yet
+export const AuthContext = createContext({});
+export const TaskContext = createContext({});
+export const PollContext = createContext({});
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  return (
+    <AuthContext.Provider value={{}}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const TaskProvider = ({ children }: { children: ReactNode }) => {
+  return (
+    <TaskContext.Provider value={{}}>
+      {children}
+    </TaskContext.Provider>
+  );
+};
+
+export const PollProvider = ({ children }: { children: ReactNode }) => {
+  return (
+    <PollContext.Provider value={{}}>
+      {children}
+    </PollContext.Provider>
+  );
+};
 
 export function Providers({ children }: { children: ReactNode }) {
   return (

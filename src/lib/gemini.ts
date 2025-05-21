@@ -1,42 +1,18 @@
 // lib/gemini.ts
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
 export async function rewritePollQuestion(question: string): Promise<string> {
-    try {
-      const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      
-      if (!GEMINI_API_KEY) {
-        console.error('Gemini API key not found');
-        return question;
-      }
-      
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: `Rewrite the following poll question to make it clearer, in one line or so , more engaging, and professionally phrased: "${question}"`,
-                  },
-                ],
-              },
-            ],
-          }),
-        }
-      );
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      return data.candidates[0].content.parts[0].text || question;
-    } catch (error) {
-      console.error('Error accessing Gemini API:', error);
-      return question;
-    }
+  try {
+    const prompt = `Rewrite the following poll question to make it more engaging and clear: "${question}"`;
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+    return response.trim();
+  } catch (error) {
+    console.error('Error rewriting poll question:', error);
+    return question; // Return original question if there's an error
   }
+}

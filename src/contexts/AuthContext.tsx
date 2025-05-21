@@ -4,7 +4,8 @@ import {
   User, 
   signInWithPopup, 
   signOut as firebaseSignOut,
-  onAuthStateChanged 
+  onAuthStateChanged,
+  // GoogleAuthProvider
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 
@@ -22,32 +23,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    // Add console logging for debugging
+    console.log('Setting up auth state listener');
+    
+    try {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        console.log('Auth state changed:', currentUser ? 'User logged in' : 'No user');
+        setUser(currentUser);
+        setLoading(false);
+      }, (error) => {
+        console.error('Auth state error:', error);
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => {
+        console.log('Unsubscribing from auth state');
+        unsubscribe();
+      };
+    } catch (error) {
+      console.error('Error in auth setup:', error);
+      setLoading(false);
+      return () => {}; // Return empty cleanup function
+    }
   }, []);
 
   const signInWithGoogle = async () => {
     try {
+      console.log('Attempting Google sign in');
+      setLoading(true);
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error('Error signing in with Google', error);
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      console.log('Attempting sign out');
+      setLoading(true);
       await firebaseSignOut(auth);
     } catch (error) {
       console.error('Error signing out', error);
+      setLoading(false);
     }
   };
 
+  const contextValue = {
+    user,
+    loading,
+    signInWithGoogle,
+    signOut
+  };
+
+  console.log('Auth context value:', { user: user?.displayName || null, loading });
+
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

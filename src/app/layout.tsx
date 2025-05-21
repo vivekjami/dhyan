@@ -14,13 +14,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-slate-900 text-gray-100 min-h-screen">
         <Providers>
-          {children}
+          <main className="container mx-auto">
+            {children}
+          </main>
         </Providers>
       </body>
     </html>
