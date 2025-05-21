@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { usePolls, Poll, PollOption } from '@/contexts/PollContext';
+import { usePolls, Poll } from '@/contexts/PollContext';
 
 interface PollItemProps {
   poll: Poll;

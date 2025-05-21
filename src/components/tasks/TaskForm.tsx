@@ -2,15 +2,12 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useTasks } from '@/contexts/TaskContext';
+import { motion } from 'framer-motion';
 
-interface TaskFormProps {
-  onComplete: () => void;
-}
-
-export default function TaskForm({ onComplete }: TaskFormProps) {
+export default function TaskForm() {
   const { addTask } = useTasks();
+  const [isExpanded, setIsExpanded] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
@@ -23,128 +20,149 @@ export default function TaskForm({ onComplete }: TaskFormProps) {
     
     setIsSubmitting(true);
     
-    await addTask({
-      title,
-      description,
-      priority,
-      completed: false,
-    });
-    
-    setTitle('');
-    setDescription('');
-    setPriority('medium');
-    setIsSubmitting(false);
-    onComplete();
+    try {
+      await addTask({
+        title,
+        description,
+        priority,
+        completed: false,
+      });
+      
+      // Reset form
+      setTitle('');
+      setDescription('');
+      setPriority('medium');
+      setIsExpanded(false);
+    } catch (error) {
+      console.error('Error adding task', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <motion.form 
-      className="retro-card mb-6 crt-effect"
-      onSubmit={handleSubmit}
-      initial={{ opacity: 0, y: -20 }}
+    <motion.div 
+      layout
+      className="retro-card mb-6 overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.5 }}
     >
-      <h3 className="text-lg mb-4">New Task</h3>
+      <h3 className="text-xl mb-4">Add New Task</h3>
       
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-1">
-            Task Title <span className="text-red-500">*</span>
-          </label>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
           <input
-            id="title"
             type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
             placeholder="What needs to be done?"
             className="retro-input w-full"
-            required
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (!isExpanded && e.target.value) {
+                setIsExpanded(true);
+              }
+            }}
+            onFocus={() => setIsExpanded(true)}
           />
         </div>
         
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium mb-1">
-            Description
-          </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add more details..."
-            className="retro-input w-full h-24"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Priority
-          </label>
-          <div className="flex space-x-4">
-            {(['low', 'medium', 'high'] as const).map((p) => (
-              <motion.div 
-                key={p}
-                className="flex items-center"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+        <motion.div
+          animate={{ height: isExpanded ? 'auto' : 0, opacity: isExpanded ? 1 : 0 }}
+          initial={false}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
+        >
+          <div className="mb-4">
+            <textarea
+              placeholder="Add description (optional)"
+              className="retro-input w-full h-24"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-semibold">Priority</label>
+            <div className="flex space-x-3">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
-                  id={`priority-${p}`}
+                  className="form-radio mr-2"
                   name="priority"
-                  value={p}
-                  checked={priority === p}
-                  onChange={() => setPriority(p)}
-                  className="hidden"
+                  value="low"
+                  checked={priority === 'low'}
+                  onChange={() => setPriority('low')}
                 />
-                <label
-                  htmlFor={`priority-${p}`}
-                  className={`
-                    px-3 py-1 rounded cursor-pointer border-2
-                    ${priority === p 
-                      ? p === 'low' 
-                        ? 'bg-green-700 border-green-500' 
-                        : p === 'medium' 
-                          ? 'bg-yellow-700 border-yellow-500' 
-                          : 'bg-red-700 border-red-500'
-                      : 'bg-gray-800 border-gray-700'
-                    }
-                  `}
-                >
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
-                </label>
-              </motion.div>
-            ))}
+                <span className="text-sm text-green-400">Low</span>
+              </label>
+              
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  className="form-radio mr-2"
+                  name="priority"
+                  value="medium"
+                  checked={priority === 'medium'}
+                  onChange={() => setPriority('medium')}
+                />
+                <span className="text-sm text-yellow-400">Medium</span>
+              </label>
+              
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  className="form-radio mr-2"
+                  name="priority"
+                  value="high"
+                  checked={priority === 'high'}
+                  onChange={() => setPriority('high')}
+                />
+                <span className="text-sm text-red-400">High</span>
+              </label>
+            </div>
           </div>
-        </div>
+        </motion.div>
         
-        <div className="flex justify-end space-x-3">
-          <motion.button
-            type="button"
-            className="retro-button bg-gray-700 border-gray-800"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onComplete}
-          >
-            Cancel
-          </motion.button>
+        <div className="flex justify-end">
+          {isExpanded && (
+            <button
+              type="button"
+              className="mr-2 px-4 py-2 text-gray-300 hover:text-white"
+              onClick={() => {
+                setIsExpanded(false);
+                if (!title) {
+                  setTitle('');
+                  setDescription('');
+                  setPriority('medium');
+                }
+              }}
+            >
+              Cancel
+            </button>
+          )}
           
           <motion.button
-            type="submit"
-            className="retro-button"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            type="submit"
+            className="retro-button"
             disabled={isSubmitting || !title.trim()}
           >
             {isSubmitting ? (
-              <span className="inline-block animate-pulse">Saving...</span>
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Adding
+              </span>
             ) : (
-              'Save Task'
+              'Add Task'
             )}
           </motion.button>
         </div>
-      </div>
-    </motion.form>
+      </form>
+    </motion.div>
   );
 }

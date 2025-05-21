@@ -2,10 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { Task, useTasks } from '@/contexts/TaskContext';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useTasks, Task } from '@/contexts/TaskContext';
+import { motion } from 'framer-motion';
 
 interface TaskItemProps {
   task: Task;
@@ -16,129 +16,186 @@ export default function TaskItem({ task }: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedDescription, setEditedDescription] = useState(task.description);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [editedPriority, setEditedPriority] = useState(task.priority);
 
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: task.id
-  });
+  // DnD setup
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const handleToggleComplete = () => {
+  // Toggle task completion
+  const handleToggle = () => {
     updateTask(task.id, { completed: !task.completed });
   };
 
-  const handleEdit = () => {
-    if (isEditing) {
-      updateTask(task.id, {
-        title: editedTitle,
-        description: editedDescription
-      });
+  // Save edited task
+  const handleSave = () => {
+    updateTask(task.id, {
+      title: editedTitle,
+      description: editedDescription,
+      priority: editedPriority as 'low' | 'medium' | 'high',
+    });
+    setIsEditing(false);
+  };
+
+  // Get priority class for visual indication
+  const getPriorityClass = () => {
+    switch (task.priority) {
+      case 'high':
+        return 'priority-high';
+      case 'medium':
+        return 'priority-medium';
+      case 'low':
+        return 'priority-low';
+      default:
+        return '';
     }
-    setIsEditing(!isEditing);
   };
 
-  const handleDelete = () => {
-    deleteTask(task.id);
-  };
-
-  const priorityColors = {
-    low: 'border-green-500',
-    medium: 'border-yellow-500',
-    high: 'border-red-500'
-  };
+  if (isEditing) {
+    return (
+      <motion.div
+        layout
+        className={`retro-task rounded-md ${getPriorityClass()}`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <div className="mb-2">
+          <input
+            type="text"
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            className="retro-input w-full mb-2"
+            placeholder="Task title"
+          />
+          <textarea
+            value={editedDescription}
+            onChange={(e) => setEditedDescription(e.target.value)}
+            className="retro-input w-full h-20"
+            placeholder="Task description"
+          />
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <label htmlFor="priority-select" className="sr-only">Priority</label>
+          <select
+            id="priority-select"
+            value={editedPriority}
+            onChange={(e) => setEditedPriority(e.target.value as 'low' | 'medium' | 'high')}
+            className="retro-input"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setIsEditing(false)}
+              className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-500"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className={`retro-task ${priorityColors[task.priority]} rounded-md ${task.completed ? 'opacity-70' : ''}`}
+      layout
+      className={`retro-task rounded-md ${getPriorityClass()} ${task.completed ? 'opacity-70' : ''}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.01 }}
     >
-      <div className="grid grid-cols-12 gap-2">
-        <div className="col-span-1 flex items-center justify-center">
-          <div className="flex flex-col items-center justify-center cursor-grab" {...listeners}>
-            <motion.div
-              className="w-6 h-1 bg-gray-500 rounded mb-1"
-              whileHover={{ scale: 1.2 }}
-            />
-            <motion.div
-              className="w-6 h-1 bg-gray-500 rounded"
-              whileHover={{ scale: 1.2 }}
-            />
-          </div>
+      <div className="flex items-start">
+        <div
+          className="cursor-grab pt-1"
+          {...listeners}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </div>
-
-        <div className="col-span-9 overflow-hidden">
-          {isEditing ? (
-            <div className="space-y-2">
+        
+        <div className="ml-3 flex-grow">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center">
               <input
-                type="text"
-                value={editedTitle}
-                onChange={(e) => setEditedTitle(e.target.value)}
-                className="retro-input w-full mb-2"
-                autoFocus
+                type="checkbox"
+                checked={task.completed}
+                onChange={handleToggle}
+                className="h-4 w-4 mr-2"
+                title="Mark task as completed"
               />
-              <textarea
-                value={editedDescription}
-                onChange={(e) => setEditedDescription(e.target.value)}
-                className="retro-input w-full h-20"
-              />
-            </div>
-          ) : (
-            <div onClick={() => setIsExpanded(!isExpanded)}>
-              <h3 className={`font-bold text-lg cursor-pointer ${task.completed ? 'line-through text-gray-400' : 'text-white'}`}>
+              <h4 className={`text-lg ${task.completed ? 'line-through text-gray-400' : 'text-white'}`}>
                 {task.title}
-              </h3>
-              {(isExpanded || task.description.length < 50) && (
-                <motion.p 
-                  className={`text-sm mt-1 text-gray-300 ${task.completed ? 'line-through' : ''}`}
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {task.description}
-                </motion.p>
-              )}
+              </h4>
             </div>
+            
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-cyan-400 hover:text-cyan-300"
+                title="Edit task"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="text-red-400 hover:text-red-300"
+                title="Delete task"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          {task.description && (
+            <p className={`mt-1 text-sm ${task.completed ? 'text-gray-500' : 'text-gray-300'}`}>
+              {task.description}
+            </p>
           )}
-        </div>
-
-        <div className="col-span-2 flex justify-end items-start space-x-1">
-          <motion.button
-            className="w-6 h-6 flex items-center justify-center rounded bg-purple-800 text-white"
-            whileHover={{ scale: 1.1, backgroundColor: '#6d28d9' }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleToggleComplete}
-          >
-            {task.completed ? '✓' : '○'}
-          </motion.button>
           
-          <motion.button
-            className="w-6 h-6 flex items-center justify-center rounded bg-blue-800 text-white"
-            whileHover={{ scale: 1.1, backgroundColor: '#1e40af' }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleEdit}
-          >
-            {isEditing ? '💾' : '✎'}
-          </motion.button>
-          
-          <motion.button
-            className="w-6 h-6 flex items-center justify-center rounded bg-red-800 text-white"
-            whileHover={{ scale: 1.1, backgroundColor: '#b91c1c' }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleDelete}
-          >
-            ×
-          </motion.button>
+          <div className="mt-2 flex justify-between items-center">
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              task.priority === 'high' ? 'bg-red-900 text-red-200' :
+              task.priority === 'medium' ? 'bg-yellow-900 text-yellow-200' :
+              'bg-green-900 text-green-200'
+            }`}>
+              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+            </span>
+            
+            <span className="text-xs text-gray-400">
+              {task.createdAt.toLocaleDateString()}
+            </span>
+          </div>
         </div>
       </div>
     </motion.div>

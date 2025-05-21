@@ -1,50 +1,78 @@
 // components/layout/Header.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Auth from '../auth/Auth';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
-import AuthButton from '../auth/AuthButton';
 
 export default function Header() {
+  const [activeTab, setActiveTab] = useState('tasks');
   const [isGlitching, setIsGlitching] = useState(false);
 
-  // Trigger glitch effect on hover
-  const triggerGlitch = () => {
-    if (!isGlitching) {
-      setIsGlitching(true);
-      setTimeout(() => setIsGlitching(false), 2000);
-    }
-  };
+  // Random glitch effect
+  useEffect(() => {
+    const glitchInterval = setInterval(() => {
+      if (Math.random() > 0.8) {
+        setIsGlitching(true);
+        setTimeout(() => setIsGlitching(false), 200);
+      }
+    }, 5000);
+    
+    return () => clearInterval(glitchInterval);
+  }, []);
 
   return (
-    <header className="bg-slate-800 border-b-4 border-orange-500 p-4 sticky top-0 z-10 scanline-effect">
-      <div className="container mx-auto flex justify-between items-center">
-        <motion.div 
-          className="flex items-center"
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Link href="/">
-            <h1 
-              className={`text-2xl md:text-3xl font-bold ${isGlitching ? 'glitch' : ''}`} 
-              data-text="DHYAN"
-              onMouseEnter={triggerGlitch}
+    <header className="bg-slate-800 border-b-4 border-orange-500 mb-8 sticky top-0 z-10">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <motion.div
+              initial={{ rotate: -5 }}
+              animate={{ rotate: isGlitching ? [0, -3, 5, -5, 0] : 0 }}
+              transition={{ duration: 0.2 }}
             >
-              DHYAN
-            </h1>
-          </Link>
-          <span className="ml-2 text-xs bg-purple-600 text-white px-1 rounded">v1.0</span>
-        </motion.div>
+              <h1 className="text-2xl font-bold text-orange-500 glitch" data-text="DHYAN">
+                DHYAN
+              </h1>
+            </motion.div>
+            <span className="ml-2 text-xs text-cyan-400 bg-slate-900 px-2 py-1 rounded">v1.0</span>
+          </div>
+          
+          <Auth />
+        </div>
         
-        <motion.div
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <AuthButton />
-        </motion.div>
+        <div className="flex mt-4 border-b border-slate-700">
+          <button
+            onClick={() => setActiveTab('tasks')}
+            className={`px-4 py-2 text-sm font-semibold ${
+              activeTab === 'tasks'
+                ? 'text-orange-500 border-b-2 border-orange-500'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            TASKS
+          </button>
+          <button
+            onClick={() => setActiveTab('polls')}
+            className={`px-4 py-2 text-sm font-semibold ${
+              activeTab === 'polls'
+                ? 'text-orange-500 border-b-2 border-orange-500'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            POLLS
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`px-4 py-2 text-sm font-semibold ${
+              activeTab === 'analytics'
+                ? 'text-orange-500 border-b-2 border-orange-500'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            ANALYTICS
+          </button>
+        </div>
       </div>
     </header>
   );

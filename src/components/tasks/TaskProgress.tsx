@@ -28,7 +28,7 @@ export default function TaskProgress() {
         >
           {/* Pixelated progress effect */}
           <div className="absolute inset-0 overflow-hidden">
-            <div className="h-full w-full grid grid-cols-12" style={{ maskImage: 'linear-gradient(90deg, black, black)' }}>
+            <div className="h-full w-full grid grid-cols-12 pixelated-mask">
               {[...Array(12)].map((_, i) => (
                 <motion.div
                   key={i}
