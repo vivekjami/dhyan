@@ -22,6 +22,7 @@ export interface NewTask {
 
 interface TaskContextType {
   tasks: Task[];
+  isLoading: boolean;
   addTask: (task: NewTask) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
@@ -29,11 +30,13 @@ interface TaskContextType {
   progressPercentage: number;
   completedTasksCount: number;
   totalTasksCount: number;
+  forceUpdate: () => void;
 }
 
 // Create context with default values
 const TaskContext = createContext<TaskContextType>({
   tasks: [],
+  isLoading: true,
   addTask: async () => {},
   updateTask: () => {},
   deleteTask: () => {},
@@ -41,6 +44,7 @@ const TaskContext = createContext<TaskContextType>({
   progressPercentage: 0,
   completedTasksCount: 0,
   totalTasksCount: 0,
+  forceUpdate: () => {},
 });
 
 // Custom hook to use the TaskContext
@@ -52,7 +56,13 @@ interface TaskProviderProps {
 
 export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [updateCounter, setUpdateCounter] = useState(0);
+
+  // Force update function to trigger re-renders when needed
+  const forceUpdate = () => {
+    setUpdateCounter(prev => prev + 1);
+  };
 
   // Calculate progress metrics
   const totalTasksCount = tasks.length;
@@ -63,36 +73,61 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
 
   // Load tasks from localStorage on initial render
   useEffect(() => {
-    try {
-      const storedTasks = localStorage.getItem('tasks');
-      if (storedTasks) {
-        // Parse the stored JSON and convert date strings back to Date objects
-        const parsedTasks = JSON.parse(storedTasks, (key, value) => {
-          if (key === 'createdAt') {
-            return new Date(value);
-          }
-          return value;
-        });
-        setTasks(parsedTasks);
+    // Function to load tasks from localStorage
+    const loadTasks = () => {
+      try {
+        const storedTasks = localStorage.getItem('tasks');
+        
+        if (storedTasks) {
+          // Parse the stored JSON and convert date strings back to Date objects
+          const parsedTasks = JSON.parse(storedTasks, (key, value) => {
+            if (key === 'createdAt') {
+              return new Date(value);
+            }
+            return value;
+          });
+          
+          // Process tasks and force them to be valid
+          const validTasks = parsedTasks.map((task: Partial<Task>) => ({
+            id: task.id || String(Date.now() + Math.random()),
+            title: task.title || 'Untitled Task',
+            description: task.description || '',
+            priority: task.priority && ['low', 'medium', 'high'].includes(task.priority) ? task.priority : 'medium',
+            completed: Boolean(task.completed),
+            createdAt: task.createdAt instanceof Date ? task.createdAt : new Date()
+          }));
+          
+          setTasks(validTasks);
+        }
+      } catch (error) {
+        console.error('Error loading tasks from localStorage:', error);
+        // Fallback to empty array if there's an error
+        setTasks([]);
+      } finally {
+        // Give a short delay to ensure the UI has updated
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 50);
       }
-    } catch (error) {
-      console.error('Error loading tasks from localStorage:', error);
-    } finally {
-      setLoaded(true);
-    }
+    };
+
+    // Small timeout to ensure we're fully client-side
+    const timer = setTimeout(loadTasks, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {
-    // Only save tasks if they've been loaded first
-    if (loaded) {
+    // Only save tasks if they've been loaded first (not in the initial loading state)
+    if (!isLoading) {
       try {
         localStorage.setItem('tasks', JSON.stringify(tasks));
       } catch (error) {
         console.error('Error saving tasks to localStorage:', error);
       }
     }
-  }, [tasks, loaded]);
+  }, [tasks, isLoading, updateCounter]);
 
   // Add a new task
   const addTask = async (newTask: NewTask): Promise<void> => {
@@ -100,12 +135,15 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
       // Simulate network delay for better UX feedback
       setTimeout(() => {
         const task: Task = {
-          id: crypto.randomUUID(),
+          id: typeof crypto !== 'undefined' && crypto.randomUUID 
+            ? crypto.randomUUID() 
+            : String(Date.now() + Math.random()),
           ...newTask,
           createdAt: new Date()
         };
         
         setTasks(prevTasks => [...prevTasks, task]);
+        forceUpdate();
         resolve();
       }, 300);
     });
@@ -118,22 +156,26 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
         task.id === id ? { ...task, ...updates } : task
       )
     );
+    forceUpdate();
   };
 
   // Delete a task
   const deleteTask = (id: string) => {
     setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+    forceUpdate();
   };
 
   // Reorder tasks (for drag and drop functionality)
   const reorderTasks = (newOrder: Task[]) => {
     setTasks(newOrder);
+    forceUpdate();
   };
 
   return (
     <TaskContext.Provider
       value={{
         tasks,
+        isLoading,
         addTask,
         updateTask,
         deleteTask,
@@ -141,6 +183,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
         progressPercentage,
         completedTasksCount,
         totalTasksCount,
+        forceUpdate,
       }}
     >
       {children}

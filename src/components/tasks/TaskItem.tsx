@@ -4,27 +4,17 @@ import { useState, useEffect } from 'react';
 import { Task, useTasks } from '@/contexts/TaskContext';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { motion } from 'framer-motion';
 
 interface TaskItemProps {
   task: Task;
 }
 
 export default function TaskItem({ task }: TaskItemProps) {
-  const { updateTask, deleteTask } = useTasks();
+  const { updateTask, deleteTask, forceUpdate } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
-  const [editedDescription, setEditedDescription] = useState(task.description);
+  const [editedDescription, setEditedDescription] = useState(task.description || '');
   const [editedPriority, setEditedPriority] = useState(task.priority);
-  const [mounted, setMounted] = useState(false);
-
-  // Update local state if task prop changes
-  useEffect(() => {
-    setEditedTitle(task.title);
-    setEditedDescription(task.description || '');
-    setEditedPriority(task.priority);
-    setMounted(true);
-  }, [task]);
 
   // DnD setup
   const {
@@ -40,19 +30,36 @@ export default function TaskItem({ task }: TaskItemProps) {
     transition,
   };
 
+  // Update local state if task prop changes
+  useEffect(() => {
+    setEditedTitle(task.title);
+    setEditedDescription(task.description || '');
+    setEditedPriority(task.priority);
+  }, [task]);
+
   // Toggle task completion
   const handleToggle = () => {
     updateTask(task.id, { completed: !task.completed });
+    forceUpdate(); // Force context update
   };
 
   // Save edited task
   const handleSave = () => {
+    if (!editedTitle.trim()) return;
+    
     updateTask(task.id, {
       title: editedTitle,
       description: editedDescription,
       priority: editedPriority as 'low' | 'medium' | 'high',
     });
     setIsEditing(false);
+    forceUpdate(); // Force context update
+  };
+
+  // Handle delete task
+  const handleDelete = () => {
+    deleteTask(task.id);
+    forceUpdate(); // Force context update
   };
 
   // Get priority class for visual indication
@@ -69,20 +76,9 @@ export default function TaskItem({ task }: TaskItemProps) {
     }
   };
 
-  // Wait for client-side hydration
-  if (!mounted) {
-    return <div className="retro-task rounded-md animate-pulse h-16"></div>;
-  }
-
   if (isEditing) {
     return (
-      <motion.div
-        layout
-        className={`retro-task rounded-md ${getPriorityClass()}`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
+      <div className={`retro-task rounded-md ${getPriorityClass()}`}>
         <div className="mb-2">
           <input
             type="text"
@@ -90,6 +86,7 @@ export default function TaskItem({ task }: TaskItemProps) {
             onChange={(e) => setEditedTitle(e.target.value)}
             className="retro-input w-full mb-2"
             placeholder="Task title"
+            autoFocus
           />
           <textarea
             value={editedDescription}
@@ -114,34 +111,32 @@ export default function TaskItem({ task }: TaskItemProps) {
           
           <div className="flex space-x-2">
             <button
+              type="button"
               onClick={() => setIsEditing(false)}
               className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleSave}
               className="px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-500"
+              disabled={!editedTitle.trim()}
             >
               Save
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      layout
       className={`retro-task rounded-md ${getPriorityClass()} ${task.completed ? 'opacity-70' : ''}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      whileHover={{ scale: 1.01 }}
     >
       <div className="flex items-start">
         <div
@@ -170,6 +165,7 @@ export default function TaskItem({ task }: TaskItemProps) {
             
             <div className="flex space-x-2">
               <button
+                type="button"
                 onClick={() => setIsEditing(true)}
                 className="text-cyan-400 hover:text-cyan-300"
                 title="Edit task"
@@ -179,7 +175,8 @@ export default function TaskItem({ task }: TaskItemProps) {
                 </svg>
               </button>
               <button
-                onClick={() => deleteTask(task.id)}
+                type="button"
+                onClick={handleDelete}
                 className="text-red-400 hover:text-red-300"
                 title="Delete task"
               >
@@ -211,6 +208,6 @@ export default function TaskItem({ task }: TaskItemProps) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

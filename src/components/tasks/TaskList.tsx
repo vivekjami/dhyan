@@ -1,7 +1,6 @@
-// components/tasks/TaskList.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTasks } from '@/contexts/TaskContext';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -10,8 +9,9 @@ import TaskItem from './TaskItem';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function TaskList() {
-  const { tasks, reorderTasks } = useTasks();
+  const { tasks, reorderTasks, isLoading } = useTasks();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [forceRender, setForceRender] = useState(0);
 
   // Setup DnD sensors
   const sensors = useSensors(
@@ -38,6 +38,16 @@ export default function TaskList() {
     }
   };
 
+  // Force a re-render once component is mounted
+  useEffect(() => {
+    // Small delay to ensure component is fully mounted
+    const timer = setTimeout(() => {
+      setForceRender(prev => prev + 1);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   // Filter tasks based on current filter
   const filteredTasks = tasks.filter(task => {
     if (filter === 'active') return !task.completed;
@@ -45,63 +55,81 @@ export default function TaskList() {
     return true;
   });
 
+  // Force re-render when tasks change
+  useEffect(() => {
+    if (tasks.length > 0) {
+      setForceRender(prev => prev + 1);
+    }
+  }, [tasks.length]);
+
   return (
-    <div className="retro-card mb-6">
-      <div className="flex justify-between items-center mb-4 opacity-100">
+    <div className="retro-card mb-6" key={`task-list-${forceRender}`}>
+      <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl">Task List</h3>
-        <div className="flex space-x-2 text-xs transparent-100">
+        <div className="flex space-x-2 text-xs">
           <button
             className={`px-3 py-1 rounded ${filter === 'all' ? 'bg-orange-500' : 'bg-slate-700'}`}
-            onClick={() => setFilter('all')}
+            onClick={() => {
+              setFilter('all');
+              setForceRender(prev => prev + 1);
+            }}
           >
             All
           </button>
           <button
             className={`px-3 py-1 rounded ${filter === 'active' ? 'bg-orange-500' : 'bg-slate-700'}`}
-            onClick={() => setFilter('active')}
+            onClick={() => {
+              setFilter('active');
+              setForceRender(prev => prev + 1);
+            }}
           >
             Active
           </button>
           <button
             className={`px-3 py-1 rounded ${filter === 'completed' ? 'bg-orange-500' : 'bg-slate-700'}`}
-            onClick={() => setFilter('completed')}
+            onClick={() => {
+              setFilter('completed');
+              setForceRender(prev => prev + 1);
+            }}
           >
             Completed
           </button>
         </div>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        modifiers={[restrictToVerticalAxis]}
-      >
-        <SortableContext 
-          items={filteredTasks.map(task => task.id)} 
-          strategy={verticalListSortingStrategy}
-        >
-          <AnimatePresence>
-            {filteredTasks.length > 0 ? (
-              <motion.div layout className="space-y-2">
-                {filteredTasks.map((task) => (
-                  <TaskItem key={task.id} task={task} />
-                ))}
-              </motion.div>
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-8 text-gray-400"
+      {isLoading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
+        </div>
+      ) : (
+        <div className="task-list-container">
+          {filteredTasks.length > 0 ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+              modifiers={[restrictToVerticalAxis]}
+            >
+              <SortableContext 
+                items={filteredTasks.map(task => task.id)} 
+                strategy={verticalListSortingStrategy}
               >
-                {filter === 'all' ? "No tasks yet. Add your first task!" : 
-                 filter === 'active' ? "No active tasks. Great job!" : 
-                 "No completed tasks yet."}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </SortableContext>
-      </DndContext>
+                <div className="space-y-2">
+                  {filteredTasks.map((task) => (
+                    <TaskItem key={`${task.id}-${forceRender}`} task={task} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              {filter === 'all' ? "No tasks yet. Add your first task!" : 
+               filter === 'active' ? "No active tasks. Great job!" : 
+               "No completed tasks yet."}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
