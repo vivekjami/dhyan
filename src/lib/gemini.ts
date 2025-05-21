@@ -20,7 +20,7 @@ export async function rewritePollQuestion(question: string): Promise<string> {
               {
                 parts: [
                   {
-                    text: `Rewrite the following poll question to make it clearer, more engaging, and professionally phrased: "${question}"`,
+                    text: `Rewrite the following poll question to make it clearer, in one line or so , more engaging, and professionally phrased: "${question}"`,
                   },
                 ],
               },
