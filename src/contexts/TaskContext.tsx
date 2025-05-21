@@ -1,210 +1,102 @@
 // contexts/TaskContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  where, 
-  getDocs, 
-  serverTimestamp,
-//   DocumentData
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from './AuthContext';
 
 export interface Task {
   id: string;
   title: string;
-  description: string;
-  completed: boolean;
+  description?: string;
   priority: 'low' | 'medium' | 'high';
+  completed: boolean;
   createdAt: Date;
-  order: number;
 }
 
 interface TaskContextProps {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'order'>) => Promise<void>;
-  updateTask: (id: string, updatedTask: Partial<Task>) => Promise<void>;
-  deleteTask: (id: string) => Promise<void>;
-  reorderTasks: (tasks: Task[]) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
+  deleteTask: (id: string) => void;
+  reorderTasks: (newTasks: Task[]) => void;
+  progressPercentage: number;
   completedTasksCount: number;
   totalTasksCount: number;
-  progressPercentage: number;
 }
 
 const TaskContext = createContext<TaskContextProps | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const { user } = useAuth();
+  const [completedTasksCount, setCompletedTasksCount] = useState(0);
+  const [progressPercentage, setProgressPercentage] = useState(0);
 
-  // Calculate task statistics
-  const completedTasksCount = tasks.filter(task => task.completed).length;
-  const totalTasksCount = tasks.length;
-  const progressPercentage = totalTasksCount > 0 
-    ? Math.round((completedTasksCount / totalTasksCount) * 100) 
-    : 0;
-
-  // Load tasks from Firestore when user logs in
+  // Load tasks from localStorage on initial load
   useEffect(() => {
-    const loadTasks = async () => {
-      if (!user) {
-        // If not logged in, try to load from localStorage
-        const storedTasks = localStorage.getItem('dhyan_tasks');
-        if (storedTasks) {
-          setTasks(JSON.parse(storedTasks));
-        }
-        return;
-      }
-
+    const savedTasks = localStorage.getItem('dhyan_tasks');
+    if (savedTasks) {
       try {
-        const q = query(
-          collection(db, 'tasks'), 
-          where('userId', '==', user.uid)
-        );
-        
-        const querySnapshot = await getDocs(q);
-        const loadedTasks: Task[] = [];
-        
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          loadedTasks.push({
-            id: doc.id,
-            title: data.title,
-            description: data.description,
-            completed: data.completed,
-            priority: data.priority,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            order: data.order || 0
-          });
-        });
-        
-        // Sort by order
-        loadedTasks.sort((a, b) => a.order - b.order);
-        setTasks(loadedTasks);
+        // Convert ISO date strings back to Date objects
+        const parsedTasks = JSON.parse(savedTasks).map((task: Omit<Task, 'createdAt'> & { createdAt: string }) => ({
+          ...task,
+          createdAt: new Date(task.createdAt)
+        }));
+        setTasks(parsedTasks);
       } catch (error) {
-        console.error('Error loading tasks', error);
+        console.error('Error parsing saved tasks', error);
       }
-    };
+    }
+  }, []);
 
-    loadTasks();
-  }, [user]);
-
-  // Save to localStorage when tasks change
+  // Save tasks to localStorage whenever they change
   useEffect(() => {
     if (tasks.length > 0) {
       localStorage.setItem('dhyan_tasks', JSON.stringify(tasks));
     }
   }, [tasks]);
 
-  const addTask = async (task: Omit<Task, 'id' | 'createdAt' | 'order'>) => {
-    try {
-      const newOrder = tasks.length > 0 
-        ? Math.max(...tasks.map(t => t.order)) + 1 
-        : 0;
-      
-      if (user) {
-        // Add to Firestore if logged in
-        const docRef = await addDoc(collection(db, 'tasks'), {
-          ...task,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-          order: newOrder
-        });
-        
-        setTasks([...tasks, {
-          id: docRef.id,
-          ...task,
-          createdAt: new Date(),
-          order: newOrder
-        }]);
-      } else {
-        // Add to local state only
-        const newTask: Task = {
-          id: Date.now().toString(),
-          ...task,
-          createdAt: new Date(),
-          order: newOrder
-        };
-        
-        setTasks([...tasks, newTask]);
-      }
-    } catch (error) {
-      console.error('Error adding task', error);
-    }
+  // Calculate progress whenever tasks change
+  useEffect(() => {
+    const completed = tasks.filter(task => task.completed).length;
+    setCompletedTasksCount(completed);
+    setProgressPercentage(tasks.length ? Math.round((completed / tasks.length) * 100) : 0);
+  }, [tasks]);
+
+  const addTask = async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    const newTask: Task = {
+      ...taskData,
+      id: crypto.randomUUID(),
+      createdAt: new Date()
+    };
+    
+    setTasks(prevTasks => [...prevTasks, newTask]);
+    return Promise.resolve();
   };
 
-  const updateTask = async (id: string, updatedTask: Partial<Task>) => {
-    try {
-      if (user) {
-        // Update in Firestore if logged in
-        const taskRef = doc(db, 'tasks', id);
-        await updateDoc(taskRef, updatedTask);
-      }
-      
-      // Update in local state
-      setTasks(tasks.map(task => 
-        task.id === id ? { ...task, ...updatedTask } : task
-      ));
-    } catch (error) {
-      console.error('Error updating task', error);
-    }
+  const updateTask = (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === id ? { ...task, ...updates } : task
+      )
+    );
   };
 
-  const deleteTask = async (id: string) => {
-    try {
-      if (user) {
-        // Delete from Firestore if logged in
-        const taskRef = doc(db, 'tasks', id);
-        await deleteDoc(taskRef);
-      }
-      
-      // Delete from local state
-      setTasks(tasks.filter(task => task.id !== id));
-    } catch (error) {
-      console.error('Error deleting task', error);
-    }
+  const deleteTask = (id: string) => {
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
   };
 
-  const reorderTasks = async (reorderedTasks: Task[]) => {
-    try {
-      // Update order property for each task
-      const updatedTasks = reorderedTasks.map((task, index) => ({
-        ...task,
-        order: index
-      }));
-      
-      setTasks(updatedTasks);
-      
-      // Update in Firestore if logged in
-      if (user) {
-        updatedTasks.forEach(async (task) => {
-          const taskRef = doc(db, 'tasks', task.id);
-          await updateDoc(taskRef, { order: task.order });
-        });
-      }
-    } catch (error) {
-      console.error('Error reordering tasks', error);
-    }
+  const reorderTasks = (newTasks: Task[]) => {
+    setTasks(newTasks);
   };
 
   return (
-    <TaskContext.Provider 
-      value={{ 
-        tasks, 
-        addTask, 
-        updateTask, 
-        deleteTask, 
-        reorderTasks,
-        completedTasksCount,
-        totalTasksCount,
-        progressPercentage
-      }}
-    >
+    <TaskContext.Provider value={{ 
+      tasks, 
+      addTask, 
+      updateTask, 
+      deleteTask, 
+      reorderTasks,
+      progressPercentage,
+      completedTasksCount,
+      totalTasksCount: tasks.length
+    }}>
       {children}
     </TaskContext.Provider>
   );
