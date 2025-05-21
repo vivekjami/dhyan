@@ -1,7 +1,6 @@
-// components/tasks/TaskItem.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Task, useTasks } from '@/contexts/TaskContext';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -17,6 +16,15 @@ export default function TaskItem({ task }: TaskItemProps) {
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedDescription, setEditedDescription] = useState(task.description);
   const [editedPriority, setEditedPriority] = useState(task.priority);
+  const [mounted, setMounted] = useState(false);
+
+  // Update local state if task prop changes
+  useEffect(() => {
+    setEditedTitle(task.title);
+    setEditedDescription(task.description || '');
+    setEditedPriority(task.priority);
+    setMounted(true);
+  }, [task]);
 
   // DnD setup
   const {
@@ -60,6 +68,11 @@ export default function TaskItem({ task }: TaskItemProps) {
         return '';
     }
   };
+
+  // Wait for client-side hydration
+  if (!mounted) {
+    return <div className="retro-task rounded-md animate-pulse h-16"></div>;
+  }
 
   if (isEditing) {
     return (
@@ -193,7 +206,7 @@ export default function TaskItem({ task }: TaskItemProps) {
             </span>
             
             <span className="text-xs text-gray-400">
-              {task.createdAt.toLocaleDateString()}
+              {task.createdAt instanceof Date ? task.createdAt.toLocaleDateString() : new Date(task.createdAt).toLocaleDateString()}
             </span>
           </div>
         </div>
