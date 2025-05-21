@@ -1,26 +1,272 @@
 @import "tailwindcss";
 
+/* app/globals.css */
+
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --primary: #f97316;        /* Orange for retro gaming */
+  --secondary: #8b5cf6;      /* Purple for office theme */
+  --accent: #06b6d4;         /* Cyan for highlights */
+  --background: #0f172a;     /* Dark slate for main background */
+  --foreground: #f8fafc;     /* Light gray for text */
+  --muted: #1e293b;          /* Lighter slate for UI elements */
+  --success: #22c55e;        /* Green for success */
+  --warning: #eab308;        /* Yellow for warning */
+  --danger: #ef4444;         /* Red for danger */
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'VT323', monospace;
+  font-size: 1.125rem;
+  scrollbar-color: var(--primary) var(--muted);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Press Start 2P', monospace;
+  color: var(--primary);
+  line-height: 1.5;
+}
+
+.retro-border {
+  border: 4px solid var(--muted);
+  box-shadow: 0 0 0 4px var(--primary), 0 0 0 8px var(--muted);
+}
+
+.pixelated {
+  image-rendering: pixelated;
+}
+
+.crt-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+}
+
+.crt-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(15, 23, 42, 0),
+    rgba(15, 23, 42, 0.4) 100%
+  );
+  pointer-events: none;
+}
+
+.retro-button {
+  @apply px-4 py-2 bg-orange-500 text-white font-bold border-b-4 border-orange-700 
+  hover:bg-orange-400 active:bg-orange-600 active:border-orange-800 
+  active:transform active:translate-y-1 transition-transform;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.retro-input {
+  @apply px-4 py-2 text-black border-4 border-gray-800 
+  focus:outline-none focus:ring-2 focus:ring-orange-500 
+  focus:border-transparent;
+  background-color: #f8f9fa;
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem;
+}
+
+.retro-card {
+  @apply bg-slate-800 p-4 rounded-lg border-4 border-purple-800;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+.scanline-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline-effect::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  background-size: 100% 4px;
+  animation: scan 5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.retro-task {
+  @apply relative p-4 mb-4 transition-all duration-300 ease-in-out;
+  background-color: var(--muted);
+  border-left: 4px solid var(--secondary);
+}
+
+.retro-task:hover {
+  transform: translateX(4px);
+  box-shadow: -4px 0 0 var(--accent);
+}
+
+.priority-high {
+  border-left-color: var(--danger);
+}
+
+.priority-medium {
+  border-left-color: var(--warning);
+}
+
+.priority-low {
+  border-left-color: var(--success);
+}
+
+.retro-progress {
+  @apply h-4 overflow-hidden;
+  background-color: var(--muted);
+  border: 2px solid var(--secondary);
+}
+
+.retro-progress-bar {
+  @apply h-full transition-all duration-500 ease-out;
+  background: linear-gradient(
+    to right,
+    var(--accent),
+    var(--primary)
+  );
+}
+
+.retro-progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 255, 255, 0.1) 10px,
+    rgba(255, 255, 255, 0.1) 20px
+  );
+}
+
+.pulse-effect {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.glitch {
+  position: relative;
+}
+
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--background);
+  opacity: 0;
+}
+
+.glitch::before {
+  animation: glitch-effect 3s infinite linear alternate-reverse;
+  color: var(--accent);
+  left: 2px;
+  text-shadow: -1px 0 red;
+}
+
+.glitch::after {
+  animation: glitch-effect 2s infinite linear alternate-reverse;
+  color: var(--primary);
+  left: -2px;
+  text-shadow: 1px 0 blue;
+}
+
+@keyframes glitch-effect {
+  0% {
+    opacity: 0;
+    transform: translate(0);
+  }
+  1% {
+    opacity: 0.1;
+  }
+  2% {
+    opacity: 0;
+    transform: translate(-5px, 5px);
+  }
+  3% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 0.1;
+  }
+  5% {
+    opacity: 0;
+    transform: translate(5px, -5px);
+  }
+  6% {
+    opacity: 0;
+  }
+  7% {
+    opacity: 0.1;
+  }
+  8% {
+    opacity: 0;
+    transform: translate(-5px, 5px);
+  }
+  9% {
+    opacity: 0;
+    transform: translate(0);
+  }
+  100% {
+    opacity: 0;
+  }
 }
