@@ -1,0 +1,43 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  color: #1e293b;
+  background: #f8fafc;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.task-card {
+  @apply transition-all duration-200 hover:scale-102 hover:shadow-lg;
+}
+
+.progress-bar {
+  @apply transition-all duration-1000 ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
