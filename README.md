@@ -4,10 +4,9 @@ A web application for scheduling tasks and creating polls, built with Next.js, T
 
 ## Features
 
-- Google Authentication via Firebase.
 - Task management: add, edit, delete, and reorder tasks with drag-and-drop.
 - Task progress tracking with a progress bar.
-- Poll creation with AI-rewritten questions.
+
 - Analytics for tasks completed today.
 - Local storage for task persistence.
 - Responsive UI with TailwindCSS.
