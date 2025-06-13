@@ -1,24 +1,14 @@
-'use client';
-
-import { motion } from 'framer-motion';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import TaskBoard from '@/components/TaskBoard';
+import { Suspense } from 'react';
+import ClientDashboard from '@/components/ClientDashboard';
 
 export default function HomePage() {
   return (
-    <motion.div 
-      className="flex flex-col h-screen"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Header />
-      
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <TaskBoard />
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
-    </motion.div>
+    }>
+      <ClientDashboard />
+    </Suspense>
   );
 }
