@@ -60,6 +60,8 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalPro
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            title="Close"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -75,7 +77,7 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalPro
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
+              className={`w-full px-3 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary ${
                 errors.title ? 'border-error' : 'border-gray-300'
               }`}
               placeholder="Enter task title..."
@@ -95,7 +97,7 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalPro
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 border bg-white border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Enter task description..."
               rows={3}
               maxLength={200}
@@ -112,7 +114,7 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalPro
               id="estimatedTime"
               value={estimatedTime}
               onChange={(e) => setEstimatedTime(parseInt(e.target.value) || 0)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
+              className={`w-full px-3 py-2 border bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
                 errors.estimatedTime ? 'border-error' : 'border-gray-300'
               }`}
               min={15}
