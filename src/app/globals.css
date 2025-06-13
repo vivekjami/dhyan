@@ -1,272 +1,157 @@
 @import "tailwindcss";
 
-/* app/globals.css */
-
-
-:root {
-  --primary: #f97316;        /* Orange for retro gaming */
-  --secondary: #8b5cf6;      /* Purple for office theme */
-  --accent: #06b6d4;         /* Cyan for highlights */
-  --background: #0f172a;     /* Dark slate for main background */
-  --foreground: #f8fafc;     /* Light gray for text */
-  --muted: #1e293b;          /* Lighter slate for UI elements */
-  --success: #22c55e;        /* Green for success */
-  --warning: #eab308;        /* Yellow for warning */
-  --danger: #ef4444;         /* Red for danger */
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: 'VT323', monospace;
-  font-size: 1.125rem;
-  scrollbar-color: var(--primary) var(--muted);
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Press Start 2P', monospace;
-  color: var(--primary);
-  line-height: 1.5;
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
 }
 
-.retro-border {
-  border: 4px solid var(--muted);
-  box-shadow: 0 0 0 4px var(--primary), 0 0 0 8px var(--muted);
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
-.pixelated {
-  image-rendering: pixelated;
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
-.crt-effect {
-  position: relative;
-  overflow: hidden;
+/* Focus styles */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
 }
 
-.crt-effect::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.15),
-    rgba(0, 0, 0, 0.15) 1px,
-    transparent 1px,
-    transparent 2px
-  );
-  pointer-events: none;
+/* Animation utilities */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
 }
 
-.crt-effect::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle at center,
-    rgba(15, 23, 42, 0),
-    rgba(15, 23, 42, 0.4) 100%
-  );
-  pointer-events: none;
+/* Celebration animation */
+@keyframes celebrate {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(5deg); }
+  50% { transform: scale(1.2) rotate(-5deg); }
+  75% { transform: scale(1.1) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 
-.retro-button {
-  @apply px-4 py-2 bg-orange-500 text-white font-bold border-b-4 border-orange-700 
-  hover:bg-orange-400 active:bg-orange-600 active:border-orange-800 
-  active:transform active:translate-y-1 transition-transform;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.animate-celebrate {
+  animation: celebrate 0.6s ease-in-out;
 }
 
-.retro-input {
-  @apply px-4 py-2 text-black border-4 border-gray-800 
-  focus:outline-none focus:ring-2 focus:ring-orange-500 
-  focus:border-transparent;
-  background-color: #f8f9fa;
-  font-family: 'VT323', monospace;
-  font-size: 1.25rem;
+/* Pulse animation for active elements */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
-.retro-card {
-  @apply bg-slate-800 p-4 rounded-lg border-4 border-purple-800;
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.scanline-effect {
-  position: relative;
-  overflow: hidden;
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.scanline-effect::before {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 50%,
-    rgba(0, 0, 0, 0.05) 50%,
-    rgba(0, 0, 0, 0.05) 100%
-  );
-  background-size: 100% 4px;
-  animation: scan 5s linear infinite;
-  pointer-events: none;
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-@keyframes scan {
-  0% {
-    transform: translateY(0%);
-  }
-  100% {
-    transform: translateY(100%);
-  }
+/* Custom shadows */
+.shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
 }
 
-.retro-task {
-  @apply relative p-4 mb-4 transition-all duration-300 ease-in-out;
-  background-color: var(--muted);
-  border-left: 4px solid var(--secondary);
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
 }
 
-.retro-task:hover {
-  transform: translateX(4px);
-  box-shadow: -4px 0 0 var(--accent);
+/* Loading skeleton */
+@keyframes skeleton {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
 }
 
-.priority-high {
-  border-left-color: var(--danger);
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: skeleton 1.5s infinite;
 }
 
-.priority-medium {
-  border-left-color: var(--warning);
+/* Smooth page transitions */
+.page-transition {
+  animation: fadeInUp 0.3s ease-out;
 }
 
-.priority-low {
-  border-left-color: var(--success);
-}
-
-.retro-progress {
-  @apply h-4 overflow-hidden;
-  background-color: var(--muted);
-  border: 2px solid var(--secondary);
-}
-
-.retro-progress-bar {
-  @apply h-full transition-all duration-500 ease-out;
-  background: linear-gradient(
-    to right,
-    var(--accent),
-    var(--primary)
-  );
-}
-
-.retro-progress-bar::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(255, 255, 255, 0.1) 10px,
-    rgba(255, 255, 255, 0.1) 20px
-  );
-}
-
-.pulse-effect {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.glitch {
-  position: relative;
-}
-
-.glitch::before, .glitch::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--background);
-  opacity: 0;
-}
-
-.glitch::before {
-  animation: glitch-effect 3s infinite linear alternate-reverse;
-  color: var(--accent);
-  left: 2px;
-  text-shadow: -1px 0 red;
-}
-
-.glitch::after {
-  animation: glitch-effect 2s infinite linear alternate-reverse;
-  color: var(--primary);
-  left: -2px;
-  text-shadow: 1px 0 blue;
-}
-
-@keyframes glitch-effect {
-  0% {
+@keyframes fadeInUp {
+  from {
     opacity: 0;
-    transform: translate(0);
+    transform: translateY(20px);
   }
-  1% {
-    opacity: 0.1;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  2% {
-    opacity: 0;
-    transform: translate(-5px, 5px);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
-  3% {
-    opacity: 0;
+  
+  .mobile-text {
+    font-size: 0.875rem;
   }
-  4% {
-    opacity: 0.1;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .border-slate-300 {
+    border-color: #000;
   }
-  5% {
-    opacity: 0;
-    transform: translate(5px, -5px);
+  
+  .text-slate-600 {
+    color: #000;
   }
-  6% {
-    opacity: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-  7% {
-    opacity: 0.1;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
   }
-  8% {
-    opacity: 0;
-    transform: translate(-5px, 5px);
-  }
-  9% {
-    opacity: 0;
-    transform: translate(0);
-  }
-  100% {
-    opacity: 0;
+  
+  .print-break {
+    page-break-after: always;
   }
 }

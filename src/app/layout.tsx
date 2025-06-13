@@ -1,11 +1,21 @@
-// app/layout.tsx
 import './globals.css';
 import type { Metadata } from 'next';
-import { Providers } from './providers';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter'
+});
 
 export const metadata: Metadata = {
-  title: 'Dhyan - Task Management & Polls',
-  description: 'A retro-themed task management and polling app',
+  title: 'Dhyan - Task Scheduling & Management',
+  description: 'A modern, clean task scheduling web application for daily productivity',
+  keywords: 'task management, productivity, scheduling, todo, daily tasks',
+  authors: [{ name: 'Dhyan Team' }],
+  viewport: 'width=device-width, initial-scale=1',
+  themeColor: '#6366f1',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -14,16 +24,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable}>
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="bg-slate-900 text-gray-100 min-h-screen">
-        <Providers>
-          <main className="container mx-auto">
-            {children}
-          </main>
-        </Providers>
+      <body className={`${inter.className} bg-slate-50 text-slate-900 antialiased`}>
+        <div className="min-h-screen flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );
