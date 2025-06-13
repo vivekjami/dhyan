@@ -32,7 +32,7 @@ export default function TaskCard({ task, isDragging = false }: TaskCardProps) {
   const getStatusColor = () => {
     switch (task.status) {
       case 'pending': return 'border-slate-300';
-      case 'in-progress': return 'border-indigo-400 ring-2 ring-indigo-100';
+      case 'in-progress': return 'border-indigo-400 ring-2 ring-indigo-100 shadow-lg';
       case 'completed': return 'border-emerald-400 bg-emerald-50';
       default: return 'border-slate-300';
     }
@@ -47,12 +47,14 @@ export default function TaskCard({ task, isDragging = false }: TaskCardProps) {
   };
 
   const handleStart = () => {
+    console.log('Starting task:', task.id, task.title);
     if (task.status === 'pending') {
       startTask(task.id);
     }
   };
 
   const handleComplete = () => {
+    console.log('Completing task:', task.id, task.title);
     completeTask(task.id);
   };
 
@@ -119,6 +121,20 @@ export default function TaskCard({ task, isDragging = false }: TaskCardProps) {
                       {task.description}
                     </p>
                   )}
+                  
+                  {/* Status indicator */}
+                  <div className="flex items-center mt-2">
+                    <div className={`
+                      px-2 py-1 rounded-full text-xs font-medium
+                      ${task.status === 'pending' ? 'bg-slate-100 text-slate-600' : ''}
+                      ${task.status === 'in-progress' ? 'bg-indigo-100 text-indigo-700 animate-pulse-subtle' : ''}
+                      ${task.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : ''}
+                    `}>
+                      {task.status === 'pending' && 'Ready to start'}
+                      {task.status === 'in-progress' && 'In progress...'}
+                      {task.status === 'completed' && 'Completed'}
+                    </div>
+                  </div>
                 </>
               )}
             </div>
@@ -173,19 +189,19 @@ export default function TaskCard({ task, isDragging = false }: TaskCardProps) {
             {task.status === 'pending' && (
               <motion.button
                 onClick={handleStart}
-                className="flex items-center space-x-1 px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                className="flex items-center space-x-1 px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 {getStatusIcon()}
-                <span>Start</span>
+                <span>Start Task</span>
               </motion.button>
             )}
 
             {task.status === 'in-progress' && (
               <motion.button
                 onClick={handleComplete}
-                className="flex items-center space-x-1 px-3 py-1 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors"
+                className="flex items-center space-x-1 px-4 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

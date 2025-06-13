@@ -30,33 +30,53 @@ export function useTasks() {
       createdAt: new Date(),
       order: tasks.length
     };
+    console.log('Adding new task:', newTask);
     setTasks(prev => [...prev, newTask]);
   }, [tasks.length, setTasks]);
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
+    console.log('Updating task:', id, updates);
     setTasks(prev => prev.map(task => 
       task.id === id ? { ...task, ...updates } : task
     ));
   }, [setTasks]);
 
   const deleteTask = useCallback((id: string) => {
+    console.log('Deleting task:', id);
     setTasks(prev => prev.filter(task => task.id !== id));
   }, [setTasks]);
 
   const startTask = useCallback((id: string) => {
-    setTasks(prev => prev.map(task => {
-      if (task.id === id) {
-        return { ...task, status: 'in-progress' as const, startedAt: new Date() };
-      }
-      // Stop any other active task
-      if (task.status === 'in-progress') {
-        return { ...task, status: 'pending' as const, startedAt: undefined };
-      }
-      return task;
-    }));
+    console.log('Starting task with ID:', id);
+    setTasks(prev => {
+      const updatedTasks = prev.map(task => {
+        if (task.id === id) {
+          console.log('Found task to start:', task.title);
+          return { 
+            ...task, 
+            status: 'in-progress' as const, 
+            startedAt: new Date() 
+          };
+        }
+        // Stop any other active task
+        if (task.status === 'in-progress') {
+          console.log('Stopping previously active task:', task.title);
+          return { 
+            ...task, 
+            status: 'pending' as const, 
+            startedAt: undefined 
+          };
+        }
+        return task;
+      });
+      
+      console.log('Updated tasks after starting:', updatedTasks);
+      return updatedTasks;
+    });
   }, [setTasks]);
 
   const completeTask = useCallback((id: string) => {
+    console.log('Completing task with ID:', id);
     setTasks(prev => prev.map(task => 
       task.id === id 
         ? { ...task, status: 'completed' as const, completedAt: new Date() }

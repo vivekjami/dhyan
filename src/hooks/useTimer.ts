@@ -17,12 +17,17 @@ export function useTimer(isActive: boolean, startTime?: Date) {
 
       // Then update every second
       intervalRef.current = setInterval(updateElapsedTime, 1000);
+      
+      console.log('Timer started for task started at:', startTime);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      setElapsedTime(0);
+      if (!isActive) {
+        setElapsedTime(0);
+      }
+      console.log('Timer stopped, isActive:', isActive);
     }
 
     return () => {
